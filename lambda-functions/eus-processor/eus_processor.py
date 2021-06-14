@@ -35,7 +35,7 @@ def lambda_handler(event, context):
     except Exception as e:
         print("Error Reading Params: ", e)
         return {
-        'status': 400,
+        'status_code': 400,
         'body': json.dumps("Failing to Read Params. Incomplete Params supplied.")
         }
 
@@ -43,11 +43,24 @@ def lambda_handler(event, context):
 
     ## Post data to towercoverage
     response = post_data(data)
-    print(response.content)
+
+    ## Convert response to String
+    response_content = response.content.decode("utf-8")
+    print(response_content)
     print(response.status_code)
 
+    if ("Error Code" in response_content):
+        error_message = response_content.split("Message:")[1].split("</string>")[0]
+        return {
+            'status_code': 400,
+            'message': json.dumps(error_message)
+        }
+
+    ## Getting Content
+
+
     return {
-        'status': 200,
+        'status_code': 200,
         'body': json.dumps("Success!!")
     }
 
