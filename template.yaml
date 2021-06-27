@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  erp-lambda-integration
+
+  Sample SAM Template for erp-lambda-integration
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 15
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+Parameters:
+  Stage:
+    Type: String
+    Default: staging
+
+Resources:
+  EusSubmissionFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Timeout: 15
+      FunctionName: EusSubmission
+      Description: EUS Submission Lambda Function, accepts the x-www-form-urlencoded body params
+      Role: arn:aws:iam::406186376066:role/eus-submission-role
+      CodeUri: eus-processor/
+      Handler: main.lambda_handler
+      Runtime: python3.7
+      Events:
+        ErpIntegrationApi:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /eus-submission
+            Method: post
+            RestApiId: !Ref ApiDeployment
+      Environment:
+        Variables:
+          EUS_SUBMISSION_URL: "https://api.towercoverage.com/Towercoverage.asmx/EUSsubmisssion"
+  ApiDeployment:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ErpIntegrationApi:
+    Description: "API Gateway endpoint URL for Staging environment of ERP integration"
+    Value: !Sub "https://${ApiDeployment}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/eus-submission"
+  EusSubmissionFunction:
+    Description: "EUS Submission Lambda Function ARN"
+    Value: !GetAtt EusSubmissionFunction.Arn
+  # HelloWorldFunctionIamRole:
+  #   Description: "Implicit IAM Role created for Hello World function"
+  #   Value: !GetAtt HelloWorldFunctionRole.Arn
