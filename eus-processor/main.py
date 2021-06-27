@@ -9,7 +9,13 @@ def lambda_handler(event, context):
     print("event --> ", event)
     print("context --> ", context)
 
-    processed_event = process_event(event)
+    try:
+        event_body = event['body']
+    except Exception as e:
+        print("Failed to Read Message Body: ", e, e.message)
+        exit(1)
+
+    processed_event = process_event(event_body)
     
     data = {}
     try:
@@ -52,7 +58,7 @@ def lambda_handler(event, context):
     if ("Error Code" in response_content):
         error_message = response_content.split("Message:")[1].split("</string>")[0]
         return {
-            'status_code': 400,
+            'statusCode': 400,
             'message': json.dumps(error_message)
         }
 
@@ -60,7 +66,7 @@ def lambda_handler(event, context):
 
 
     return {
-        'status_code': 200,
+        'statusCode': 200,
         'body': json.dumps("Success!!")
     }
 
@@ -78,10 +84,9 @@ def removing_special_characters(value):
         value = value.replace("%40", "@")
     return value
 
-def process_event(event):
-    body = event['body']
+def process_event(event_body):
     result = {}
-    for key_value in body.split("&"):
+    for key_value in event_body.split("&"):
         key = key_value.split("=")[0]
         key = removing_special_characters(key)
         value = key_value.split("=")[1]
