@@ -21,7 +21,7 @@ Resources:
       Description: EUS Submission Lambda Function, accepts the x-www-form-urlencoded
         body params
       Role: arn:aws:iam::406186376066:role/eus-submission-role
-      CodeUri: s3://sam-erp-artifacts/9032a309244c9390aac792dfd67a2f7f
+      CodeUri: s3://sam-erp-artifacts/6092c0b5857a1e8b1907354e295219d0
       Handler: main.lambda_handler
       Runtime: python3.7
       Events:
@@ -35,6 +35,27 @@ Resources:
       Environment:
         Variables:
           EUS_SUBMISSION_URL: https://api.towercoverage.com/Towercoverage.asmx/EUSsubmisssion
+  TowerCoverageWebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 15
+      FunctionName: TowerCoverageWebhook
+      Description: A webhook listener that receives the response from the TowerCoverageAPI.
+      Role: arn:aws:iam::406186376066:role/tower-coverage-webhook-role
+      CodeUri: s3://sam-erp-artifacts/f8801b23766005502d72bda686a7fb4f
+      Handler: main.lambda_handler
+      Runtime: python3.7
+      Events:
+        ErpIntegrationApi:
+          Type: Api
+          Properties:
+            Path: /tower-coverage-webhook
+            Method: post
+            RestApiId:
+              Ref: ApiDeployment
+      Environment:
+        Variables:
+          SQS_QUEUE_PATHS: sqs-queues-paths
   ApiDeployment:
     Type: AWS::Serverless::Api
     Properties:
