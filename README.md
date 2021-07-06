@@ -1,4 +1,4 @@
-# SkyFiber - AWS Integration
+# AWS Integration
 
 This repo contains the code for lambda functions and cloudformation templates.
 
