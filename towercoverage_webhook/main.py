@@ -6,6 +6,7 @@ import os
 SQS = 'sqs'
 SSM = 'ssm'
 PARAMETER_NAME = os.environ['SQS_QUEUE_PATHS']
+LAMBDA = 'lambda'
 
 def lambda_handler(event, context):
     # TODO implement
@@ -46,6 +47,16 @@ def lambda_handler(event, context):
         return {
             'statusCode': 500,
             'message': json.dumps("Failed to put event to SQS queue")
+        }
+    
+    try:
+        response = invoke_lambda_function(text_map)
+        print(response)
+    except Exception as e:
+        print("Failed to invoke lambda function: ", e)
+        return {
+            'statusCode': 500,
+            'message': json.dumps("Failed to invoke Lambda Function.") 
         }
 
     return {
@@ -93,3 +104,14 @@ def parse_xml(xml_data):
     print("Parent Map:", parent_map)
     print("Text Map: ", text_map)
     return text_map
+
+
+def invoke_lambda_function(data):
+    lambda_client = boto3.client(LAMBDA)
+    response = lambda_client.invoke(
+        FunctionName='odooRPC',
+        InvocationType='Event',
+        LogType='Tail',
+        Payload=json.dumps(data),
+    )
+    return response
